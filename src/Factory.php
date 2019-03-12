@@ -8,8 +8,11 @@ namespace Crane\Router;
 
 use Crane\Router\Route;
 use Crane\Router\Attributes;
+use Crane\Router\Stores\RoutesStore;
+use Crane\Router\DefaultRequestContext;
 use Crane\Router\Interfaces\RouteContextInterface;
 use Crane\Router\Interfaces\RouterFactoryInterface;
+use Crane\Router\Interfaces\RequestContextInterface;
 use Crane\Router\Interfaces\RouteDispatcherInterface;
 
 class Factory implements RouterFactoryInterface
@@ -31,18 +34,23 @@ class Factory implements RouterFactoryInterface
 	* @access 	public
 	* @return 	void
 	*/
-	public function __construct(?RouteDispatcherInterface $routeDispatcherContext = null, ?RouteContextInterface $routeContext = null)
+	public function __construct(?RouteDispatcherInterface $routeDispatcherContext = null, ?RouteContextInterface $routeContext = null, ?RequestContextInterface $requestContext = null)
 	{
 		if (is_null($routeDispatcherContext)) {
 			$routeContext = new Route();
 		}
 
 		if (is_null($routeDispatcherContext)) {
-			$routeDispatcherContext = $this;
+			$routeDispatcherContext = 1;
+		}
+
+		if (is_null($requestContext)) {
+			$requestContext = new DefaultRequestContext();
 		}
 
 		$this->config['routeDispatcherContext'] = $routeDispatcherContext;
 		$this->config['routeContext'] = $routeContext;
+		$this->config['requestContext'] = $requestContext;
 	}
 
 	/**
@@ -53,7 +61,8 @@ class Factory implements RouterFactoryInterface
 		return $this->config['routeContext']->createRoute(
 			Attributes::ATTR_GET_METHOD,
 			$url,
-			$resource
+			$resource,
+			$this->config
 		);
 	}
 
@@ -65,7 +74,8 @@ class Factory implements RouterFactoryInterface
 		return $this->config['routeContext']->createRoute(
 			Attributes::ATTR_POST_METHOD,
 			$url,
-			$resource
+			$resource,
+			$this->config
 		);
 	}
 
@@ -77,7 +87,8 @@ class Factory implements RouterFactoryInterface
 		return $this->config['routeContext']->createRoute(
 			Attributes::ATTR_PUT_METHOD,
 			$url,
-			$resource
+			$resource,
+			$this->config
 		);
 	}
 
@@ -89,7 +100,8 @@ class Factory implements RouterFactoryInterface
 		return $this->config['routeContext']->createRoute(
 			Attributes::ATTR_DELETE_METHOD,
 			$url,
-			$resource
+			$resource,
+			$this->config
 		);
 	}
 
@@ -99,6 +111,17 @@ class Factory implements RouterFactoryInterface
 	public function groupBy()
 	{
 
+	}
+
+	/**
+	* Returns registered routes.
+	*
+	* @access 	public
+	* @return 	Array
+	*/
+	public function getRegisteredRoutes()
+	{
+		return RoutesStore::getStoredRoutes();
 	}
 
 }
